@@ -258,14 +258,10 @@ def is_backup(filename, backup_extensions):
           return True
    return False
 
-def collect(archives_dir):
-   """Return a collection of account objects for all accounts in backup directory."""
-   accounts = []
-   # Append all account names from archives_dir.
-   for account_name in os.listdir(archives_dir):
-      accounts.append(account_name)
-   accounts = sorted(list(set(accounts))) # Uniquify.
-   return accounts
+
+def get_sorted_dirs(directory):
+   """Returns sorted dirnames in a directory"""
+   return sorted(list(set(os.listdir(directory)))
 
 
 def check_dirs(backups_dir, archives_dir):
@@ -282,6 +278,7 @@ def check_dirs(backups_dir, archives_dir):
          LOGGER.error("Unable to create archives directory: %s." % archives_dir)
          sys.exit(1)
 
+
 def rotate_new_arrivals(backups_dir, archives_dir, backup_extensions, period_name):
    for filename in os.listdir(backups_dir):
       if is_backup(filename, backup_extensions=backup_extensions):
@@ -296,7 +293,6 @@ def is_rotation_time(
   weekly_backup_day,
 ):
   assert(period_name in ('hourly', 'daily', 'weekly'))
-
   if period_name == 'hourly':
      actual_time = date.hour
      config_time = hourly_backup_hour
@@ -305,7 +301,6 @@ def is_rotation_time(
      config_time = weekly_backup_day
   else:
      return False
-
   if actual_time == config_time:
      LOGGER.debug('%s equals %s.' % (actual_time, config_time))
      return True
@@ -342,7 +337,6 @@ def rotate(
 
 try:
   import pytest
-
   import tempfile
 
 
@@ -459,12 +453,12 @@ def do_move_to_archive_and_rotate(
     period_name='hourly',
   )
 
-  for account_name in collect(archives_dir=archives_dir):
+  for dirname in get_sorted_dirs(directory=archives_dir):
     kw = dict(
       archives_dir=archives_dir,
       hourly_backup_hour=hourly_backup_hour,
       weekly_backup_day=weekly_backup_day,
-      account_name=account_name,
+      account_name=dirname,
     )
 
     rotate(
