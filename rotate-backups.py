@@ -196,8 +196,7 @@ file_pattern = '(.*)(\-)([0-9]{4}\-[0-9]{2}\-[0-9]{2}\-[0-9]{4})'
 class Backup(object):
    def __init__(self, path_to_file):
       """Instantiation also rewrites the filename if not already done, prepending the date."""
-      self.path_to_file = path_to_file
-      self.filename = self.format_filename()
+      self.path_to_file, self.filename = get_path_and_name_rename_if_no_date(path_to_file)
       self.set_account_and_date(self.filename)
 
    def set_account_and_date(self, filename):
@@ -226,30 +225,33 @@ class Backup(object):
      LOGGER.info('Removing %s' % self.path_to_file)
      os.remove(self.path_to_file)
 
-   def format_filename(self):
-      """If this filename hasn't yet been prepended with the date, do that now."""
-      # Does the filename include a date?
-      path_parts = os.path.split(self.path_to_file)
-      filename = path_parts[-1]
-
-      if not re.match(file_pattern, filename.split('.')[0]):
-          # No date, rename the file.
-          mtime = time.localtime( os.path.getmtime(self.path_to_file) )
-          mtime_str = time.strftime('%Y-%m-%d-%H%M', mtime)
-          account = filename.split('.')[0]
-          extension = filename.split('.', 1)[1]
-          filename = ('%s-%s.' + extension) % (account, mtime_str)
-          parent_dir = os.sep + os.path.join(*path_parts[:-1])
-          new_filepath = os.path.join(parent_dir, filename)
-          LOGGER.info('Renaming file to %s.' % new_filepath)
-          shutil.move(self.path_to_file, new_filepath)
-          self.path_to_file = new_filepath
-
-      return filename
-
    def __cmp__(x, y):
       """For sorting by date."""
       return cmp( x.date, y.date)
+
+
+def get_path_and_name_rename_if_no_date(filepath):
+  """If this filename hasn't yet been prepended with the date, do that now."""
+  # Does the filename include a date?
+
+  path_parts = os.path.split(filepath)
+  filename = path_parts[-1]
+
+  if re.match(file_pattern, filename.split('.')[0]):
+      # File already has date, nothing to do here
+      return filepath, filename
+
+  # No date, rename the file.
+  mtime = time.localtime(os.path.getmtime(filepath))
+  mtime_str = time.strftime('%Y-%m-%d-%H%M', mtime)
+  account = filename.split('.')[0]
+  extension = filename.split('.', 1)[1]
+  new_filename = ('%s-%s.' + extension) % (account, mtime_str)
+  parent_dir = os.sep + os.path.join(*path_parts[:-1])  # TODO: could be os.path.dirname(file)?
+  new_filepath = os.path.join(parent_dir, new_filename)
+  LOGGER.info('Renaming file to %s.' % new_filepath)
+  shutil.move(filepath, new_filepath)
+  return new_filepath, new_filename
 
 
 def is_backup(filename, backup_extensions):
@@ -261,7 +263,7 @@ def is_backup(filename, backup_extensions):
 
 def get_sorted_dirs(directory):
    """Returns sorted dirnames in a directory"""
-   return sorted(list(set(os.listdir(directory)))
+   return sorted(list(set(os.listdir(directory))))
 
 
 def check_dirs(backups_dir, archives_dir):
