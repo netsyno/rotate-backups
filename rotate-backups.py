@@ -483,17 +483,30 @@ def do_move_to_archive_and_rotate(
     )
 
 
-if __name__ == '__main__':
+def get_parser():
   import argparse
   parser = argparse.ArgumentParser()
-  parser.add_argument("--noconfig", help="don't look for config file", action="store_true")
-  args = parser.parse_args()
+  parser.add_argument("--backups-dir", help="Directory to store rotated files", type=str)
+  parser.add_argument("--archives-dir", help="Source directory for new files", type=str)
+  # parser.add_argument("--backup-extensions", help="Extensions to interpret as backup files, comma separated", type=str)
+  return parser
 
+
+def update_config_with_args(config):
+  args = get_parser().parse_args()
+  if args.backups_dir:
+    config['backups_dir'] = os.path.abspath(args.backups_dir)
+  if args.archives_dir:
+    config['archives_dir'] = os.path.abspath(args.archives_dir)
+  # if args.backup_extensions:
+  #   config['backup_extensions'] = args.backup_extensions.split(',')
+
+
+if __name__ == '__main__':
   config = SimpleConfig().config.__dict__['_sections']['Settings']
   config['max_weekly_backups'] = int(config['max_weekly_backups'])
   config['hourly_backup_hour'] = int(config['hourly_backup_hour'])
   config['weekly_backup_day'] = int(config['weekly_backup_day'])
-
+  update_config_with_args(config)
   do_move_to_archive_and_rotate(**config)
-
   sys.exit(0)
