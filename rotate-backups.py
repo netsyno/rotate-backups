@@ -231,15 +231,15 @@ class Backup(object):
       # Does the filename include a date?
       path_parts = os.path.split(self.path_to_file)
       filename = path_parts[-1]
-      parent_dir = os.sep + os.path.join(*path_parts[:-1])
 
       if not re.match(file_pattern, filename.split('.')[0]):
           # No date, rename the file.
-          self.mtime = time.localtime( os.path.getmtime(self.path_to_file) )
-          self.mtime_str = time.strftime('%Y-%m-%d-%H%M', self.mtime)
+          mtime = time.localtime( os.path.getmtime(self.path_to_file) )
+          mtime_str = time.strftime('%Y-%m-%d-%H%M', mtime)
           account = filename.split('.')[0]
           extension = filename.split('.', 1)[1]
-          filename = ('%s-%s.' + extension) % (account, self.mtime_str)
+          filename = ('%s-%s.' + extension) % (account, mtime_str)
+          parent_dir = os.sep + os.path.join(*path_parts[:-1])
           new_filepath = os.path.join(parent_dir, filename)
           LOGGER.info('Renaming file to %s.' % new_filepath)
           shutil.move(self.path_to_file, new_filepath)
