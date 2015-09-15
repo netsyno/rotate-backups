@@ -486,8 +486,8 @@ def do_move_to_archive_and_rotate(
 def get_parser():
   import argparse
   parser = argparse.ArgumentParser()
-  parser.add_argument("--backups-dir", help="Directory to store rotated files", type=str)
-  parser.add_argument("--archives-dir", help="Source directory for new files", type=str)
+  parser.add_argument("--backups-dir", help="Source directory for new files", type=str)
+  parser.add_argument("--archives-dir", help="Directory to store rotated files", type=str)
   # parser.add_argument("--backup-extensions", help="Extensions to interpret as backup files, comma separated", type=str)
   return parser
 
