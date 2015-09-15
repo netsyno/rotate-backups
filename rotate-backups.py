@@ -183,9 +183,9 @@ def get_backups_in(account_name, directory, archives_dir):
   path_to_dir = '%s%s/' % (base_path, directory)
   backups = []
   if os.path.isdir(path_to_dir):
-     for filename in os.listdir(path_to_dir):
-        path_to_file = os.path.join(path_to_dir, filename)
-        backups.append(Backup(path_to_file))
+    for filename in os.listdir(path_to_dir):
+      path_to_file = os.path.join(path_to_dir, filename)
+      backups.append(Backup(path_to_file))
   backups.sort(key=lambda b: b.date)
   return backups
 
