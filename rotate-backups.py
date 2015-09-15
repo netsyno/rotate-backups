@@ -190,16 +190,18 @@ def get_backups_in(account_name, directory, archives_dir):
   return backups
 
 
+file_pattern = '(.*)(\-)([0-9]{4}\-[0-9]{2}\-[0-9]{2}\-[0-9]{4})'
+
+
 class Backup(object):
    def __init__(self, path_to_file):
       """Instantiation also rewrites the filename if not already done, prepending the date."""
-      self.pattern = '(.*)(\-)([0-9]{4}\-[0-9]{2}\-[0-9]{2}\-[0-9]{4})'
       self.path_to_file = path_to_file
       self.filename = self.format_filename()
       self.set_account_and_date(self.filename)
 
    def set_account_and_date(self, filename):
-      match_obj = re.match(self.pattern, filename)
+      match_obj = re.match(file_pattern, filename)
       if match_obj is None:
         return filename
       self.account = match_obj.group(1)
@@ -230,7 +232,8 @@ class Backup(object):
       path_parts = os.path.split(self.path_to_file)
       filename = path_parts[-1]
       parent_dir = os.sep + os.path.join(*path_parts[:-1])
-      if not re.match(self.pattern, filename.split('.')[0]):
+
+      if not re.match(file_pattern, filename.split('.')[0]):
           # No date, rename the file.
           self.mtime = time.localtime( os.path.getmtime(self.path_to_file) )
           self.mtime_str = time.strftime('%Y-%m-%d-%H%M', self.mtime)
@@ -241,6 +244,7 @@ class Backup(object):
           LOGGER.info('Renaming file to %s.' % new_filepath)
           shutil.move(self.path_to_file, new_filepath)
           self.path_to_file = new_filepath
+
       return filename
 
    def __cmp__(x, y):
